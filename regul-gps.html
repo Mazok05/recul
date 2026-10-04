@@ -12,9 +12,7 @@
 :root{
   --bg:#07090b; --panel:#12161b; --panel2:#1a2027; --line:#28313a;
   --txt:#f2f6fa; --dim:#8b98a6; --blue:#4da3ff;
-  --av:#ff6b6b;   /* avance : tu es trop rapide */
-  --re:#ffc247;   /* retard : tu es trop lent  */
-  --ok:#3ddc8c;
+  --av:#ff6b6b; --re:#ffc247; --ok:#3ddc8c;
   --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
 }
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
@@ -23,10 +21,10 @@ body{background:var(--bg);color:var(--txt);
   font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
   padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
   overscroll-behavior:none;-webkit-user-select:none;user-select:none}
-#app{max-width:560px;margin:0 auto;padding:10px 12px 20px}
+#app{max-width:560px;margin:0 auto;padding:10px 12px 24px}
 h1{font-size:15px;margin:2px 0 10px;letter-spacing:.4px;color:var(--dim);font-weight:600;
-   display:flex;justify-content:space-between;align-items:center}
-h1 b{color:var(--txt);font-size:17px}
+   display:flex;justify-content:space-between;align-items:center;gap:10px}
+h1 b{color:var(--txt);font-size:17px;white-space:nowrap}
 h2{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin:18px 0 8px}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0}
 .hero{text-align:center;padding:18px 12px 20px}
@@ -42,12 +40,15 @@ h2{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);
 button{font:700 17px/1 inherit;color:var(--txt);background:var(--panel2);border:1px solid var(--line);
   border-radius:14px;padding:17px 14px;width:100%;cursor:pointer;touch-action:manipulation}
 button:active{filter:brightness(1.25)}
-button.go{background:var(--ok);border-color:var(--ok);color:#042417;font-size:21px;padding:22px}
+button.go{background:var(--ok);border-color:var(--ok);color:#042417;font-size:22px;padding:24px}
 button.stop{background:#3a2020;border-color:#5a2a2a;color:#ff9b9b}
 button.blue{background:var(--blue);border-color:var(--blue);color:#061423}
 button.sm{font-size:14px;padding:12px}
+button.gh{background:transparent;border-color:#3a2626;color:#ff9b9b}
 input{font:700 18px/1 inherit;color:var(--txt);background:#0b0f13;border:1px solid var(--line);
   border-radius:11px;padding:14px;width:100%;-webkit-user-select:text;user-select:text}
+textarea{font:400 12px/1.4 var(--mono);color:var(--txt);background:#0b0f13;border:1px solid var(--line);
+  border-radius:11px;padding:12px;width:100%;height:150px;-webkit-user-select:text;user-select:text}
 label{display:block;font-size:11px;color:var(--dim);margin:12px 0 5px;text-transform:uppercase;letter-spacing:.09em}
 .pill{font-size:11px;padding:5px 10px;border-radius:999px;border:1px solid var(--line);color:var(--dim)}
 .pill.ok{color:var(--ok);border-color:#1c4433}.pill.warn{color:var(--re);border-color:#4a3b14}
@@ -59,46 +60,116 @@ label{display:block;font-size:11px;color:var(--dim);margin:12px 0 5px;text-trans
 .note{font-size:12.5px;line-height:1.55;color:var(--dim)}
 .note b{color:var(--txt)}
 .warnbox{background:#2a1a12;border:1px solid #5c3a1a;color:#ffc98a;border-radius:12px;padding:11px 13px;font-size:13px;margin-top:10px}
+.lst{border:1px solid var(--line);border-radius:14px;overflow:hidden;background:var(--panel)}
+.lst>div{padding:15px 14px;border-bottom:1px solid #1d242b;display:flex;justify-content:space-between;
+  gap:10px;align-items:center;cursor:pointer}
+.lst>div:last-child{border-bottom:0}
+.lst>div:active{background:var(--panel2)}
+.nm{font-weight:700;font-size:16px}
+.sb{font-size:12px;color:var(--dim);margin-top:3px}
+.chev{color:var(--dim);font-size:20px;flex:0 0 auto}
+table{width:100%;border-collapse:collapse;font:700 15px/1.3 var(--mono);font-variant-numeric:tabular-nums}
+th{font:600 10px/1 inherit;text-transform:uppercase;letter-spacing:.08em;color:var(--dim);text-align:right;padding:7px 4px;border-bottom:1px solid var(--line)}
+th:first-child,td:first-child{text-align:left}
+td{text-align:right;padding:9px 4px;border-bottom:1px solid #1d242b}
+tr:last-child td{border-bottom:0}
 .sheet{position:fixed;inset:0;background:#000b;display:flex;align-items:flex-end;z-index:30}
 .sheet>div{background:var(--panel);width:100%;max-width:560px;margin:0 auto;border-radius:20px 20px 0 0;
-  padding:18px 16px calc(18px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+  padding:18px 16px calc(18px + env(safe-area-inset-bottom));border-top:1px solid var(--line);
+  max-height:88vh;overflow:auto}
 </style>
 </head>
 <body>
 <div id="app">
 
-<h1><b>Régul GPS</b><span id="gps" class="pill">GPS en attente</span></h1>
+<h1><b id="ttl">Régul GPS</b><span id="gps" class="pill">GPS en attente</span></h1>
 
-<!-- ============ RÉGLAGES ============ -->
-<section id="setup">
+<!-- ======================= ACCUEIL ======================= -->
+<section id="v-home">
+  <button class="blue" onclick="freeMode()">Mode libre</button>
+  <div class="note" style="margin:8px 2px 0">
+    Une moyenne, rien d'autre. Pour t'entraîner sur une liaison sans toucher à tes ZR enregistrées.
+  </div>
+
+  <h2>Mes zones de régularité</h2>
+  <div id="list"></div>
+  <button class="sm" style="margin-top:10px" onclick="editZr(null)">+ Nouvelle ZR</button>
+  <div class="grid2" style="margin-top:8px">
+    <button class="sm" onclick="openIO('exp')">Exporter</button>
+    <button class="sm" onclick="openIO('imp')">Importer</button>
+  </div>
+  <div class="note" style="margin-top:12px">
+    Programme tes ZR tranquillement la veille. Le jour J, tu ouvres l'appli, tu touches la bonne
+    ligne et il ne reste que le bouton Départ. <b>Exporte avant chaque rallye</b>, les données vivent
+    dans le navigateur et une purge de Safari les effacerait.
+  </div>
+</section>
+
+<!-- ======================= ÉDITION ======================= -->
+<section id="v-edit" class="hide">
   <div class="card">
+    <label>Nom</label>
+    <input id="eName" type="text" placeholder="ex. ZR1 Burzet">
     <label>Moyenne de départ (km/h)</label>
-    <input id="moy0" type="text" inputmode="decimal" placeholder="ex. 48">
-    <h2 style="margin-bottom:4px">Changements de moyenne</h2>
+    <input id="eMoy" type="text" inputmode="decimal" placeholder="ex. 48">
+    <label>Longueur road book (km) — optionnel</label>
+    <input id="eLen" type="text" inputmode="decimal" placeholder="ex. 14.84">
+  </div>
+
+  <div class="card">
+    <h2 style="margin-top:0">Changements de moyenne</h2>
     <div id="secs"></div>
     <button class="sm" onclick="addSec()">+ Ajouter un changement</button>
     <div class="note" style="margin-top:10px">
-      Un changement s'applique <b>à partir</b> du kilométrage indiqué, compté depuis le départ de la ZR.
+      Chaque ligne s'applique <b>à partir</b> du kilométrage indiqué, compté depuis le départ de la ZR.
+      L'ordre n'a pas d'importance, l'appli trie.
     </div>
   </div>
 
   <div class="card">
     <label>Coefficient de distance</label>
-    <input id="coef" type="text" inputmode="decimal" placeholder="1.000">
+    <input id="eCoef" type="text" inputmode="decimal" placeholder="1.0000">
     <div class="note" style="margin-top:8px">
-      Laisse 1.000 au début. Après un recalage, l'appli te proposera la valeur mesurée.
+      Laisse 1.0000 au début. Un recalage en course peut le mettre à jour et il sera conservé ici.
+    </div>
+  </div>
+
+  <button class="blue" onclick="saveZr()">Enregistrer</button>
+  <div class="grid2" style="margin-top:8px">
+    <button class="sm" onclick="dupZr()">Dupliquer</button>
+    <button class="sm gh" onclick="delZr()">Supprimer</button>
+  </div>
+  <button class="sm" style="margin-top:8px" onclick="go('home')">Retour</button>
+</section>
+
+<!-- ======================= PRÊT ======================= -->
+<section id="v-ready" class="hide">
+  <div class="card">
+    <div class="lbl" id="rdName" style="letter-spacing:.1em;color:var(--txt);font-size:17px"></div>
+    <div id="rdFree" class="hide">
+      <label>Moyenne (km/h)</label>
+      <input id="rdMoy" type="text" inputmode="decimal" placeholder="ex. 48">
+    </div>
+    <div id="rdTable" style="margin-top:12px"></div>
+    <div class="grid2" style="margin-top:12px">
+      <div class="tile"><div class="k">Longueur</div><div class="v" id="rdLen">—</div></div>
+      <div class="tile"><div class="k">Coefficient</div><div class="v" id="rdCoef">—</div></div>
     </div>
   </div>
 
   <button class="go" onclick="start()">Départ</button>
-  <div class="note" style="margin-top:10px">
-    Appuie <b>sur la ligne, au top du commissaire</b>. Le chrono et la distance partent de zéro à cet instant.
+  <div class="note" style="margin:10px 2px">
+    Appuie <b>sur la ligne, au top du commissaire</b>. Le chrono et la distance partent de zéro
+    à cet instant précis.
+  </div>
+  <div class="grid2">
+    <button class="sm" id="rdEdit" onclick="editZr(cur&&cur.id)">Modifier</button>
+    <button class="sm" onclick="go('home')">Retour</button>
   </div>
 </section>
 
-<!-- ============ COURSE ============ -->
-<section id="live" class="hide">
-
+<!-- ======================= COURSE ======================= -->
+<section id="v-live" class="hide">
   <div class="card hero" id="heroBox">
     <div class="lbl" id="ecLbl">À l'heure</div>
     <div class="huge" id="ecM">0</div>
@@ -132,7 +203,7 @@ label{display:block;font-size:11px;color:var(--dim);margin:12px 0 5px;text-trans
 </div>
 
 <!-- feuille recalage -->
-<div id="sheet" class="sheet hide"><div>
+<div id="sh1" class="sheet hide"><div>
   <h2 style="margin-top:0">Recaler la distance</h2>
   <div class="note">Tu es à un point dont tu connais le kilométrage exact au road book. Saisis-le.</div>
   <label>Kilométrage réel (km)</label>
@@ -142,7 +213,18 @@ label{display:block;font-size:11px;color:var(--dim);margin:12px 0 5px;text-trans
     <button class="blue" onclick="doRecal(false)">Recaler seulement</button>
     <button onclick="doRecal(true)">Recaler + coefficient</button>
   </div>
-  <button class="sm" style="margin-top:8px" onclick="closeSheet()">Annuler</button>
+  <button class="sm" style="margin-top:8px" onclick="closeSheets()">Annuler</button>
+</div></div>
+
+<!-- feuille export / import -->
+<div id="sh2" class="sheet hide"><div>
+  <h2 style="margin-top:0" id="ioTitle">Exporter</h2>
+  <div class="note" id="ioNote"></div>
+  <textarea id="ioTxt" spellcheck="false"></textarea>
+  <div class="grid2" style="margin-top:12px">
+    <button class="blue" id="ioBtn" onclick="doIO()">Copier</button>
+    <button onclick="closeSheets()">Fermer</button>
+  </div>
 </div></div>
 
 <script>
@@ -150,62 +232,149 @@ label{display:block;font-size:11px;color:var(--dim);margin:12px 0 5px;text-trans
 /* ------------------------------------------------------------------ *
  *  Régul GPS — instrument de régularité autonome
  *
- *  Distance : intégration de la VITESSE Doppler fournie par le GPS,
- *  pas des différences de position. Sur route sinueuse, intégrer les
- *  positions sur-estime de 1 à 3 % à cause du bruit ; la vitesse
- *  Doppler de l'iPhone est précise à environ 0,1 m/s et ne souffre
- *  pas de ce défaut. Un coefficient et un recalage manuel permettent
- *  de corriger le résidu.
+ *  Distance : intégration de la VITESSE Doppler du GPS, jamais des
+ *  différences de position (le bruit de position sur-estime de 1 à 3 %
+ *  sur route sinueuse). Coefficient + recalage manuel pour le résidu.
  * ------------------------------------------------------------------ */
 
 const $=id=>document.getElementById(id);
 const clamp=(v,a,b)=>v<a?a:v>b?b:v;
-const num=s=>{const v=parseFloat(String(s||'').replace(',','.'));return isNaN(v)?null:v;};
+const num=s=>{const v=parseFloat(String(s??'').replace(',','.'));return isNaN(v)?null:v;};
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 const R=6371008.8, rad=d=>d*Math.PI/180;
 function hav(a,b){
   const dla=rad(b.lat-a.lat),dlo=rad(b.lon-a.lon);
   const h=Math.sin(dla/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dlo/2)**2;
   return 2*R*Math.asin(Math.min(1,Math.sqrt(h)));
 }
-const K='regul-gps-v1';
+const K='regul-gps-v2';
 
-/* ---------------- secteurs ---------------- */
-let secs=[];                                   // [{km, moy}]
-function addSec(km,moy){
-  secs.push({km:km??'',moy:moy??''}); paintSecs();
-}
-function paintSecs(){
-  $('secs').innerHTML=secs.map((s,i)=>`
-    <div class="sec">
-      <input type="text" inputmode="decimal" placeholder="km" value="${s.km}" oninput="secs[${i}].km=this.value">
-      <input type="text" inputmode="decimal" placeholder="km/h" value="${s.moy}" oninput="secs[${i}].moy=this.value">
-      <button class="x" onclick="secs.splice(${i},1);paintSecs()">✕</button>
-    </div>`).join('');
-}
-/* plan de moyennes consolidé, en m et m/s */
-function plan(){
-  const p=[{s:0, v:(num($('moy0').value)||0)/3.6}];
-  secs.map(x=>({s:(num(x.km)||0)*1000, v:(num(x.moy)||0)/3.6}))
-      .filter(x=>x.s>0 && x.v>0).sort((a,b)=>a.s-b.s)
-      .forEach(x=>p.push(x));
+/* ---------------- bibliothèque ---------------- */
+let DB={zrs:[],free:'48'};
+function load(){ try{ const d=JSON.parse(localStorage.getItem(K)); if(d&&Array.isArray(d.zrs)) DB=d; }catch(e){} }
+function persist(){ try{ localStorage.setItem(K,JSON.stringify(DB)); }catch(e){ alert('Stockage saturé.'); } }
+let cur=null;        // ZR en cours d'utilisation (peut être le mode libre)
+let draft=null;      // ZR en cours d'édition
+
+/* plan de moyennes consolidé, en mètres et m/s */
+function plan(zr){
+  const p=[{s:0, v:(num(zr.moy0)||0)/3.6}];
+  (zr.secs||[]).map(x=>({s:(num(x.km)||0)*1000, v:(num(x.moy)||0)/3.6}))
+    .filter(x=>x.s>0&&x.v>0).sort((a,b)=>a.s-b.s).forEach(x=>p.push(x));
   return p;
 }
 function vAt(P,d){ let v=P[0].v; for(const x of P) if(d>=x.s) v=x.v; return v; }
-/* temps idéal pour parcourir d mètres selon le plan */
 function tIdeal(P,d){
   let t=0;
   for(let i=0;i<P.length;i++){
     const a=P[i].s, b=(i+1<P.length)?P[i+1].s:Infinity;
     if(d<=a) break;
     const seg=Math.min(d,b)-a;
-    if(seg>0 && P[i].v>0) t+=seg/P[i].v;
+    if(seg>0&&P[i].v>0) t+=seg/P[i].v;
   }
   return t;
 }
+function recap(zr){
+  const P=plan(zr);
+  if(!P[0].v) return '<div class="note">Moyenne non renseignée.</div>';
+  let rows='';
+  for(let i=0;i<P.length;i++){
+    const a=P[i].s, b=(i+1<P.length)?P[i+1].s:((num(zr.len)||0)*1000||null);
+    rows+=`<tr><td>${(a/1000).toFixed(2)}${b?' à '+(b/1000).toFixed(2):' et +'}</td>
+      <td>${(P[i].v*3.6).toFixed(1)} km/h</td></tr>`;
+  }
+  return `<table><tr><th>Tronçon (km)</th><th>Moyenne</th></tr>${rows}</table>`;
+}
+function sumline(zr){
+  const P=plan(zr);
+  const ms=P.map(x=>(x.v*3.6).toFixed(0)).join(' puis ');
+  return (P[0].v?ms+' km/h':'moyenne non renseignée') +
+         (num(zr.len)? ' · '+num(zr.len).toFixed(2)+' km':'');
+}
 
-/* ---------------- état ---------------- */
-let on=false, w=null, tick=null, wl=null;
-let t0=0, dist=0, v=0, lastT=0, prevPos=null, coef=1, acc=null, P=[];
+/* ---------------- navigation ---------------- */
+let view='home';
+function go(v){
+  if(view==='live'&&v!=='live') stop(true);
+  view=v;
+  ['home','edit','ready','live'].forEach(x=>$('v-'+x).classList.toggle('hide',x!==v));
+  $('ttl').textContent = v==='live'&&cur ? cur.name : 'Régul GPS';
+  if(v==='home') paintHome();
+}
+function closeSheets(){ $('sh1').classList.add('hide'); $('sh2').classList.add('hide'); }
+
+function paintHome(){
+  const L=$('list');
+  if(!DB.zrs.length){ L.innerHTML='<div class="card note">Aucune ZR enregistrée.</div>'; return; }
+  L.innerHTML='<div class="lst">'+DB.zrs.map((z,i)=>`
+    <div onclick="openZr(${i})">
+      <div><div class="nm">${esc(z.name)}</div><div class="sb">${esc(sumline(z))}</div></div>
+      <div class="chev">›</div>
+    </div>`).join('')+'</div>';
+}
+
+/* ---------------- édition ---------------- */
+function editZr(id){
+  draft = id ? JSON.parse(JSON.stringify(DB.zrs.find(z=>z.id===id)))
+             : {id:null,name:'',moy0:'',len:'',coef:'1.0000',secs:[]};
+  $('eName').value=draft.name; $('eMoy').value=draft.moy0;
+  $('eLen').value=draft.len||''; $('eCoef').value=draft.coef||'1.0000';
+  paintSecs(); go('edit');
+}
+function addSec(){ draft.secs.push({km:'',moy:''}); paintSecs(); }
+function paintSecs(){
+  $('secs').innerHTML=(draft.secs||[]).map((s,i)=>`
+    <div class="sec">
+      <input type="text" inputmode="decimal" placeholder="à partir du km" value="${esc(s.km)}" oninput="draft.secs[${i}].km=this.value">
+      <input type="text" inputmode="decimal" placeholder="km/h" value="${esc(s.moy)}" oninput="draft.secs[${i}].moy=this.value">
+      <button class="x" onclick="draft.secs.splice(${i},1);paintSecs()">✕</button>
+    </div>`).join('');
+}
+function readDraft(){
+  draft.name=($('eName').value||'').trim();
+  draft.moy0=$('eMoy').value; draft.len=$('eLen').value; draft.coef=$('eCoef').value;
+}
+function saveZr(){
+  readDraft();
+  if(!draft.name){ alert('Donne un nom à la ZR.'); return; }
+  if(!num(draft.moy0)){ alert('Saisis la moyenne de départ.'); return; }
+  draft.secs=(draft.secs||[]).filter(s=>num(s.km)!=null&&num(s.moy));
+  if(draft.id){ const i=DB.zrs.findIndex(z=>z.id===draft.id); if(i>=0) DB.zrs[i]=draft; }
+  else { draft.id=Date.now().toString(36); DB.zrs.push(draft); }
+  persist(); go('home');
+}
+function dupZr(){
+  readDraft();
+  if(!num(draft.moy0)){ alert('Saisis la moyenne de départ.'); return; }
+  const c=JSON.parse(JSON.stringify(draft));
+  c.id=Date.now().toString(36); c.name=(c.name||'ZR')+' (copie)';
+  DB.zrs.push(c); persist(); go('home');
+}
+function delZr(){
+  if(!draft.id){ go('home'); return; }
+  if(!confirm('Supprimer '+draft.name+' ?')) return;
+  DB.zrs=DB.zrs.filter(z=>z.id!==draft.id); persist(); go('home');
+}
+
+/* ---------------- prêt au départ ---------------- */
+function openZr(i){ cur=DB.zrs[i]; paintReady(false); go('ready'); }
+function freeMode(){
+  cur={id:null,name:'Mode libre',moy0:DB.free||'48',len:'',coef:'1.0000',secs:[]};
+  paintReady(true); go('ready');
+}
+function paintReady(free){
+  $('rdName').textContent=cur.name;
+  $('rdFree').classList.toggle('hide',!free);
+  $('rdEdit').classList.toggle('hide',free);
+  if(free) $('rdMoy').value=cur.moy0;
+  $('rdTable').innerHTML = free ? '' : recap(cur);
+  $('rdLen').textContent = num(cur.len)? num(cur.len).toFixed(2)+' km' : '—';
+  $('rdCoef').textContent = (num(cur.coef)||1).toFixed(4);
+}
+
+/* ---------------- état course ---------------- */
+let on=false,w=null,tick=null,wl=null;
+let t0=0,dist=0,v=0,lastT=0,prevPos=null,coef=1,acc=null,P=[];
 
 async function keep(a){ try{
   if(a&&'wakeLock' in navigator) wl=await navigator.wakeLock.request('screen');
@@ -214,31 +383,28 @@ async function keep(a){ try{
 document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&on) keep(true); });
 
 function start(){
-  const m0=num($('moy0').value);
-  if(!m0||m0<=0){ alert('Saisis la moyenne de départ.'); return; }
+  if(!cur) return;
+  if(!cur.id){ cur.moy0=$('rdMoy').value; DB.free=cur.moy0; persist(); }
+  if(!num(cur.moy0)){ alert('Saisis la moyenne.'); return; }
   if(!navigator.geolocation){ alert('Géolocalisation indisponible.'); return; }
-  coef=num($('coef').value)||1;
-  P=plan();
+  coef=num(cur.coef)||1; P=plan(cur);
   dist=0; v=0; prevPos=null; t0=performance.now(); lastT=t0; on=true;
-  localStorage.setItem(K,JSON.stringify({moy0:$('moy0').value,secs,coef:$('coef').value}));
-  $('setup').classList.add('hide'); $('live').classList.remove('hide');
   keep(true);
   w=navigator.geolocation.watchPosition(onFix,onErr,{enableHighAccuracy:true,maximumAge:0,timeout:15000});
   tick=setInterval(loop,100);
-  loop();
+  go('live'); loop();
 }
-function stop(){
+function stop(silent){
   on=false;
   if(w!=null){ navigator.geolocation.clearWatch(w); w=null; }
   if(tick){ clearInterval(tick); tick=null; }
   keep(false);
-  $('live').classList.add('hide'); $('setup').classList.remove('hide');
+  if(!silent) go('ready');
 }
-
 function onFix(p){
   const c=p.coords; acc=Math.round(c.accuracy);
   const pos={lat:c.latitude,lon:c.longitude,t:p.timestamp};
-  if(c.speed!=null && !isNaN(c.speed) && c.speed>=0){
+  if(c.speed!=null&&!isNaN(c.speed)&&c.speed>=0){
     v=c.speed;                                   // Doppler : source principale
   }else if(prevPos){                             // repli : différence de positions
     const dt=(pos.t-prevPos.t)/1000;
@@ -252,90 +418,101 @@ function onErr(e){
   const g=$('gps'); g.className='pill bad'; g.textContent=m[e.code]||'erreur GPS';
 }
 
-/* ---------------- boucle d'affichage ---------------- */
 function loop(){
   const now=performance.now(), dt=(now-lastT)/1000; lastT=now;
-  if(dt>0&&dt<2) dist += v*dt*coef;              // intégration de la vitesse
+  if(dt>0&&dt<2) dist += v*dt*coef;
   const t=(now-t0)/1000;
 
-  const vs = vAt(P,dist);                        // moyenne du secteur courant
-  const ti = tIdeal(P,dist);                     // temps idéal pour cette distance
-  const eS = ti - t;                             // >0 : avance
-  const eM = eS*vs;
+  const vs=vAt(P,dist), ti=tIdeal(P,dist);
+  const eS=ti-t, eM=eS*vs;                       // >0 : avance
 
-  // vitesse à tenir pour revenir à zéro sur les 300 prochains mètres
-  const L=300, need = tIdeal(P,dist+L) - t;
+  const L=300, need=tIdeal(P,dist+L)-t;
   let vc = need>0.5 ? L/need : vs*1.5;
-  const cap = vs*1.10;                           // plafond réglementaire +10 %
-  const over = vc>cap;
-  vc = clamp(vc, 0, cap);
+  const cap=vs*1.10, over=vc>cap;
+  vc=clamp(vc,0,cap);
 
-  const box=$('heroBox'), col = Math.abs(eM)<2 ? 'var(--ok)' : eM>0 ? 'var(--av)' : 'var(--re)';
-  $('ecLbl').textContent = Math.abs(eM)<2 ? 'À l\'heure' : eM>0 ? 'Avance · lève le pied' : 'Retard · accélère';
-  $('ecLbl').style.color = col;
-  $('ecM').textContent = (eM>0?'+':'') + Math.round(eM);
-  $('ecM').style.color = col;
-  $('ecS').textContent = (eS>0?'+':'') + eS.toFixed(1).replace('.',',') + ' s';
-  box.style.borderColor = Math.abs(eM)<2 ? '#1c4433' : eM>0 ? '#4a1e1e' : '#4a3b14';
+  const col = Math.abs(eM)<2?'var(--ok)':eM>0?'var(--av)':'var(--re)';
+  $('ecLbl').textContent = Math.abs(eM)<2?'À l\'heure':eM>0?'Avance · lève le pied':'Retard · accélère';
+  $('ecLbl').style.color=col;
+  $('ecM').textContent=(eM>0?'+':'')+Math.round(eM);
+  $('ecM').style.color=col;
+  $('ecS').textContent=(eS>0?'+':'')+eS.toFixed(1).replace('.',',')+' s';
+  $('heroBox').style.borderColor = Math.abs(eM)<2?'#1c4433':eM>0?'#4a1e1e':'#4a3b14';
 
-  $('vCible').textContent = vs>0 ? (vc*3.6).toFixed(0) : '—';
-  $('vNow').textContent   = 'actuelle ' + (v*3.6).toFixed(0) + ' km/h';
+  $('vCible').textContent = vs>0?(vc*3.6).toFixed(0):'—';
+  $('vNow').textContent   = 'actuelle '+(v*3.6).toFixed(0)+' km/h';
   const crawl = vs>0 && vc < vs*0.5;
   $('cap').classList.toggle('hide', !over && !crawl);
-  if(over) $('cap').innerHTML = 'Plafonné à +10 % de la moyenne. Au-delà, le règlement prévoit 160 € puis la disqualification. Reprends la moyenne juste et encaisse le retard.';
-  else if(crawl) $('cap').innerHTML = 'Avance importante. Attention, tout ralentissement intempestif ou arrêt dans la zone, surtout aux abords de l\'arrivée, est interdit et sanctionné. Rends l\'avance progressivement.';
+  if(over) $('cap').innerHTML='Plafonné à +10 % de la moyenne. Au-delà, le règlement prévoit 160 € puis la disqualification. Reprends la moyenne juste et encaisse le retard.';
+  else if(crawl) $('cap').innerHTML='Avance importante. Attention, tout ralentissement intempestif ou arrêt dans la zone, surtout aux abords de l\'arrivée, est interdit et sanctionné. Rends l\'avance progressivement.';
 
-  $('dist').textContent  = dist<10000 ? Math.round(dist)+' m' : (dist/1000).toFixed(2)+' km';
+  $('dist').textContent  = dist<10000?Math.round(dist)+' m':(dist/1000).toFixed(2)+' km';
   $('tps').textContent   = mmss(t);
   $('tid').textContent   = mmss(ti);
   $('moyNow').textContent= (vs*3.6).toFixed(1);
-  $('moyR').textContent  = t>5 ? (dist/t*3.6).toFixed(1) : '—';
+  $('moyR').textContent  = t>5?(dist/t*3.6).toFixed(1):'—';
   $('acc').textContent   = acc==null?'—':acc+' m';
   const g=$('gps');
-  g.className='pill ' + (acc==null?'':acc<=8?'ok':acc<=20?'warn':'bad');
+  g.className='pill '+(acc==null?'':acc<=8?'ok':acc<=20?'warn':'bad');
   g.textContent = acc==null?'GPS en attente':acc<=8?'GPS bon':acc<=20?'GPS moyen':'GPS dégradé';
 }
-function mmss(s){
-  s=Math.max(0,Math.round(s));
-  return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
-}
+function mmss(s){ s=Math.max(0,Math.round(s)); return Math.floor(s/60)+':'+String(s%60).padStart(2,'0'); }
 
 /* ---------------- recalage ---------------- */
 function openRecal(){
   $('rkm').value='';
   $('rInfo').textContent='Distance mesurée actuelle : '+Math.round(dist)+' m';
-  $('sheet').classList.remove('hide');
+  $('sh1').classList.remove('hide');
 }
-function closeSheet(){ $('sheet').classList.add('hide'); }
 function doRecal(applyCoef){
   const km=num($('rkm').value);
   if(km==null||km<0){ alert('Saisis le kilométrage.'); return; }
   const real=km*1000;
-  if(applyCoef && dist>200){
-    coef = clamp(coef*real/dist, 0.8, 1.2);
-    $('coef').value = coef.toFixed(4);
+  if(applyCoef&&dist>200){
+    coef=clamp(coef*real/dist,0.8,1.2);
+    cur.coef=coef.toFixed(4);
+    if(cur.id){ const i=DB.zrs.findIndex(z=>z.id===cur.id); if(i>=0){ DB.zrs[i].coef=cur.coef; persist(); } }
   }
-  dist = real;
-  closeSheet();
+  dist=real; closeSheets();
+}
+
+/* ---------------- export / import ---------------- */
+let ioMode='exp';
+function openIO(m){
+  ioMode=m;
+  $('ioTitle').textContent = m==='exp'?'Exporter':'Importer';
+  $('ioNote').textContent  = m==='exp'
+    ? 'Copie ce texte et garde-le en note ou envoie-le toi par mail. Il contient toutes tes ZR.'
+    : 'Colle ici un export. Il remplacera entièrement la liste actuelle.';
+  $('ioBtn').textContent   = m==='exp'?'Copier':'Remplacer';
+  $('ioTxt').value = m==='exp' ? JSON.stringify(DB.zrs) : '';
+  $('sh2').classList.remove('hide');
+}
+function doIO(){
+  if(ioMode==='exp'){
+    const t=$('ioTxt'); t.focus(); t.select();
+    try{ navigator.clipboard.writeText(t.value); $('ioBtn').textContent='Copié'; }
+    catch(e){ try{ document.execCommand('copy'); $('ioBtn').textContent='Copié'; }catch(e2){} }
+    return;
+  }
+  let a; try{ a=JSON.parse($('ioTxt').value); }catch(e){ alert('Texte illisible.'); return; }
+  if(!Array.isArray(a)){ alert('Format inattendu.'); return; }
+  if(!confirm('Remplacer les '+DB.zrs.length+' ZR actuelles par les '+a.length+' importées ?')) return;
+  DB.zrs=a.map(z=>({id:z.id||Date.now().toString(36)+Math.random().toString(36).slice(2,6),
+    name:String(z.name||'ZR'), moy0:String(z.moy0??''), len:String(z.len??''),
+    coef:String(z.coef??'1.0000'),
+    secs:Array.isArray(z.secs)?z.secs.map(s=>({km:String(s.km??''),moy:String(s.moy??'')})):[]}));
+  persist(); closeSheets(); go('home');
 }
 
 /* ---------------- init ---------------- */
-(function(){
-  try{
-    const s=JSON.parse(localStorage.getItem(K)||'{}');
-    if(s.moy0) $('moy0').value=s.moy0;
-    if(s.coef) $('coef').value=s.coef;
-    if(Array.isArray(s.secs)) secs=s.secs;
-  }catch(e){}
-  paintSecs();
-  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
-  // réveille le GPS dès l'ouverture pour que le premier fix soit déjà stabilisé au départ
-  if(navigator.geolocation) navigator.geolocation.getCurrentPosition(
-    p=>{ acc=Math.round(p.coords.accuracy);
-         const g=$('gps'); g.className='pill '+(acc<=8?'ok':acc<=20?'warn':'bad');
-         g.textContent='GPS prêt · '+acc+' m'; }, ()=>{},
-    {enableHighAccuracy:true,timeout:15000});
-})();
+load(); paintHome();
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+if(navigator.geolocation) navigator.geolocation.getCurrentPosition(p=>{
+  acc=Math.round(p.coords.accuracy);
+  const g=$('gps'); g.className='pill '+(acc<=8?'ok':acc<=20?'warn':'bad');
+  g.textContent='GPS prêt · '+acc+' m';
+},()=>{},{enableHighAccuracy:true,timeout:15000});
 </script>
 </body>
 </html>

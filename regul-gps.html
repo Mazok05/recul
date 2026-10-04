@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Régul GPS">
+<meta name="theme-color" content="#07090b">
+<title>Régul GPS</title>
+<style>
+:root{
+  --bg:#07090b; --panel:#12161b; --panel2:#1a2027; --line:#28313a;
+  --txt:#f2f6fa; --dim:#8b98a6; --blue:#4da3ff;
+  --av:#ff6b6b;   /* avance : tu es trop rapide */
+  --re:#ffc247;   /* retard : tu es trop lent  */
+  --ok:#3ddc8c;
+  --mono:ui-monospace,SFMono-Regular,Menlo,monospace;
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;height:100%}
+body{background:var(--bg);color:var(--txt);
+  font:16px/1.4 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+  padding:env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  overscroll-behavior:none;-webkit-user-select:none;user-select:none}
+#app{max-width:560px;margin:0 auto;padding:10px 12px 20px}
+h1{font-size:15px;margin:2px 0 10px;letter-spacing:.4px;color:var(--dim);font-weight:600;
+   display:flex;justify-content:space-between;align-items:center}
+h1 b{color:var(--txt);font-size:17px}
+h2{font-size:12px;text-transform:uppercase;letter-spacing:.1em;color:var(--dim);margin:18px 0 8px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:14px;margin:10px 0}
+.hero{text-align:center;padding:18px 12px 20px}
+.lbl{font:700 13px/1 inherit;text-transform:uppercase;letter-spacing:.16em;color:var(--dim)}
+.huge{font:800 86px/.95 var(--mono);letter-spacing:-4px;font-variant-numeric:tabular-nums;margin:8px 0 2px}
+.sub{font:700 24px/1 var(--mono);font-variant-numeric:tabular-nums;color:var(--dim)}
+.spd{font:800 62px/1 var(--mono);letter-spacing:-3px;font-variant-numeric:tabular-nums;color:var(--blue)}
+.grid3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.tile{background:var(--panel2);border:1px solid var(--line);border-radius:12px;padding:10px;text-align:center}
+.k{font-size:10.5px;text-transform:uppercase;letter-spacing:.09em;color:var(--dim)}
+.v{font:700 20px/1.25 var(--mono);font-variant-numeric:tabular-nums}
+button{font:700 17px/1 inherit;color:var(--txt);background:var(--panel2);border:1px solid var(--line);
+  border-radius:14px;padding:17px 14px;width:100%;cursor:pointer;touch-action:manipulation}
+button:active{filter:brightness(1.25)}
+button.go{background:var(--ok);border-color:var(--ok);color:#042417;font-size:21px;padding:22px}
+button.stop{background:#3a2020;border-color:#5a2a2a;color:#ff9b9b}
+button.blue{background:var(--blue);border-color:var(--blue);color:#061423}
+button.sm{font-size:14px;padding:12px}
+input{font:700 18px/1 inherit;color:var(--txt);background:#0b0f13;border:1px solid var(--line);
+  border-radius:11px;padding:14px;width:100%;-webkit-user-select:text;user-select:text}
+label{display:block;font-size:11px;color:var(--dim);margin:12px 0 5px;text-transform:uppercase;letter-spacing:.09em}
+.pill{font-size:11px;padding:5px 10px;border-radius:999px;border:1px solid var(--line);color:var(--dim)}
+.pill.ok{color:var(--ok);border-color:#1c4433}.pill.warn{color:var(--re);border-color:#4a3b14}
+.pill.bad{color:var(--av);border-color:#4a1e1e}
+.hide{display:none!important}
+.sec{display:flex;gap:8px;align-items:center;margin:8px 0}
+.sec input{text-align:center}
+.sec .x{width:52px;flex:0 0 52px;background:#2a1a1a;border-color:#4a2626;color:#ff9b9b;padding:14px 0;font-size:15px}
+.note{font-size:12.5px;line-height:1.55;color:var(--dim)}
+.note b{color:var(--txt)}
+.warnbox{background:#2a1a12;border:1px solid #5c3a1a;color:#ffc98a;border-radius:12px;padding:11px 13px;font-size:13px;margin-top:10px}
+.sheet{position:fixed;inset:0;background:#000b;display:flex;align-items:flex-end;z-index:30}
+.sheet>div{background:var(--panel);width:100%;max-width:560px;margin:0 auto;border-radius:20px 20px 0 0;
+  padding:18px 16px calc(18px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}
+</style>
+</head>
+<body>
+<div id="app">
+
+<h1><b>Régul GPS</b><span id="gps" class="pill">GPS en attente</span></h1>
+
+<!-- ============ RÉGLAGES ============ -->
+<section id="setup">
+  <div class="card">
+    <label>Moyenne de départ (km/h)</label>
+    <input id="moy0" type="text" inputmode="decimal" placeholder="ex. 48">
+    <h2 style="margin-bottom:4px">Changements de moyenne</h2>
+    <div id="secs"></div>
+    <button class="sm" onclick="addSec()">+ Ajouter un changement</button>
+    <div class="note" style="margin-top:10px">
+      Un changement s'applique <b>à partir</b> du kilométrage indiqué, compté depuis le départ de la ZR.
+    </div>
+  </div>
+
+  <div class="card">
+    <label>Coefficient de distance</label>
+    <input id="coef" type="text" inputmode="decimal" placeholder="1.000">
+    <div class="note" style="margin-top:8px">
+      Laisse 1.000 au début. Après un recalage, l'appli te proposera la valeur mesurée.
+    </div>
+  </div>
+
+  <button class="go" onclick="start()">Départ</button>
+  <div class="note" style="margin-top:10px">
+    Appuie <b>sur la ligne, au top du commissaire</b>. Le chrono et la distance partent de zéro à cet instant.
+  </div>
+</section>
+
+<!-- ============ COURSE ============ -->
+<section id="live" class="hide">
+
+  <div class="card hero" id="heroBox">
+    <div class="lbl" id="ecLbl">À l'heure</div>
+    <div class="huge" id="ecM">0</div>
+    <div class="sub" id="ecS">0,0 s</div>
+  </div>
+
+  <div class="card hero" style="padding:14px 12px 16px">
+    <div class="lbl">Vitesse à tenir</div>
+    <div class="spd" id="vCible">—</div>
+    <div class="sub" id="vNow" style="font-size:19px">actuelle —</div>
+    <div id="cap" class="warnbox hide"></div>
+  </div>
+
+  <div class="grid3">
+    <div class="tile"><div class="k">Distance</div><div class="v" id="dist">0 m</div></div>
+    <div class="tile"><div class="k">Temps</div><div class="v" id="tps">0:00</div></div>
+    <div class="tile"><div class="k">Moyenne</div><div class="v" id="moyNow">—</div></div>
+  </div>
+  <div class="grid3" style="margin-top:8px">
+    <div class="tile"><div class="k">Temps idéal</div><div class="v" id="tid">0:00</div></div>
+    <div class="tile"><div class="k">Moy. réelle</div><div class="v" id="moyR">—</div></div>
+    <div class="tile"><div class="k">Précision</div><div class="v" id="acc">—</div></div>
+  </div>
+
+  <div class="grid2" style="margin-top:12px">
+    <button class="blue" onclick="openRecal()">Recaler</button>
+    <button class="stop" onclick="stop()">Arrêter</button>
+  </div>
+</section>
+
+</div>
+
+<!-- feuille recalage -->
+<div id="sheet" class="sheet hide"><div>
+  <h2 style="margin-top:0">Recaler la distance</h2>
+  <div class="note">Tu es à un point dont tu connais le kilométrage exact au road book. Saisis-le.</div>
+  <label>Kilométrage réel (km)</label>
+  <input id="rkm" type="text" inputmode="decimal" placeholder="ex. 4.50">
+  <div id="rInfo" class="note" style="margin-top:10px"></div>
+  <div class="grid2" style="margin-top:14px">
+    <button class="blue" onclick="doRecal(false)">Recaler seulement</button>
+    <button onclick="doRecal(true)">Recaler + coefficient</button>
+  </div>
+  <button class="sm" style="margin-top:8px" onclick="closeSheet()">Annuler</button>
+</div></div>
+
+<script>
+'use strict';
+/* ------------------------------------------------------------------ *
+ *  Régul GPS — instrument de régularité autonome
+ *
+ *  Distance : intégration de la VITESSE Doppler fournie par le GPS,
+ *  pas des différences de position. Sur route sinueuse, intégrer les
+ *  positions sur-estime de 1 à 3 % à cause du bruit ; la vitesse
+ *  Doppler de l'iPhone est précise à environ 0,1 m/s et ne souffre
+ *  pas de ce défaut. Un coefficient et un recalage manuel permettent
+ *  de corriger le résidu.
+ * ------------------------------------------------------------------ */
+
+const $=id=>document.getElementById(id);
+const clamp=(v,a,b)=>v<a?a:v>b?b:v;
+const num=s=>{const v=parseFloat(String(s||'').replace(',','.'));return isNaN(v)?null:v;};
+const R=6371008.8, rad=d=>d*Math.PI/180;
+function hav(a,b){
+  const dla=rad(b.lat-a.lat),dlo=rad(b.lon-a.lon);
+  const h=Math.sin(dla/2)**2+Math.cos(rad(a.lat))*Math.cos(rad(b.lat))*Math.sin(dlo/2)**2;
+  return 2*R*Math.asin(Math.min(1,Math.sqrt(h)));
+}
+const K='regul-gps-v1';
+
+/* ---------------- secteurs ---------------- */
+let secs=[];                                   // [{km, moy}]
+function addSec(km,moy){
+  secs.push({km:km??'',moy:moy??''}); paintSecs();
+}
+function paintSecs(){
+  $('secs').innerHTML=secs.map((s,i)=>`
+    <div class="sec">
+      <input type="text" inputmode="decimal" placeholder="km" value="${s.km}" oninput="secs[${i}].km=this.value">
+      <input type="text" inputmode="decimal" placeholder="km/h" value="${s.moy}" oninput="secs[${i}].moy=this.value">
+      <button class="x" onclick="secs.splice(${i},1);paintSecs()">✕</button>
+    </div>`).join('');
+}
+/* plan de moyennes consolidé, en m et m/s */
+function plan(){
+  const p=[{s:0, v:(num($('moy0').value)||0)/3.6}];
+  secs.map(x=>({s:(num(x.km)||0)*1000, v:(num(x.moy)||0)/3.6}))
+      .filter(x=>x.s>0 && x.v>0).sort((a,b)=>a.s-b.s)
+      .forEach(x=>p.push(x));
+  return p;
+}
+function vAt(P,d){ let v=P[0].v; for(const x of P) if(d>=x.s) v=x.v; return v; }
+/* temps idéal pour parcourir d mètres selon le plan */
+function tIdeal(P,d){
+  let t=0;
+  for(let i=0;i<P.length;i++){
+    const a=P[i].s, b=(i+1<P.length)?P[i+1].s:Infinity;
+    if(d<=a) break;
+    const seg=Math.min(d,b)-a;
+    if(seg>0 && P[i].v>0) t+=seg/P[i].v;
+  }
+  return t;
+}
+
+/* ---------------- état ---------------- */
+let on=false, w=null, tick=null, wl=null;
+let t0=0, dist=0, v=0, lastT=0, prevPos=null, coef=1, acc=null, P=[];
+
+async function keep(a){ try{
+  if(a&&'wakeLock' in navigator) wl=await navigator.wakeLock.request('screen');
+  else if(wl){ await wl.release(); wl=null; }
+}catch(e){} }
+document.addEventListener('visibilitychange',()=>{ if(document.visibilityState==='visible'&&on) keep(true); });
+
+function start(){
+  const m0=num($('moy0').value);
+  if(!m0||m0<=0){ alert('Saisis la moyenne de départ.'); return; }
+  if(!navigator.geolocation){ alert('Géolocalisation indisponible.'); return; }
+  coef=num($('coef').value)||1;
+  P=plan();
+  dist=0; v=0; prevPos=null; t0=performance.now(); lastT=t0; on=true;
+  localStorage.setItem(K,JSON.stringify({moy0:$('moy0').value,secs,coef:$('coef').value}));
+  $('setup').classList.add('hide'); $('live').classList.remove('hide');
+  keep(true);
+  w=navigator.geolocation.watchPosition(onFix,onErr,{enableHighAccuracy:true,maximumAge:0,timeout:15000});
+  tick=setInterval(loop,100);
+  loop();
+}
+function stop(){
+  on=false;
+  if(w!=null){ navigator.geolocation.clearWatch(w); w=null; }
+  if(tick){ clearInterval(tick); tick=null; }
+  keep(false);
+  $('live').classList.add('hide'); $('setup').classList.remove('hide');
+}
+
+function onFix(p){
+  const c=p.coords; acc=Math.round(c.accuracy);
+  const pos={lat:c.latitude,lon:c.longitude,t:p.timestamp};
+  if(c.speed!=null && !isNaN(c.speed) && c.speed>=0){
+    v=c.speed;                                   // Doppler : source principale
+  }else if(prevPos){                             // repli : différence de positions
+    const dt=(pos.t-prevPos.t)/1000;
+    if(dt>0.2&&dt<5) v=clamp(hav(prevPos,pos)/dt,0,70);
+  }
+  if(v<0.6) v=0;                                 // seuil anti-dérive à l'arrêt
+  prevPos=pos;
+}
+function onErr(e){
+  const m={1:'Autorisation refusée',2:'Position indisponible',3:'Délai dépassé'};
+  const g=$('gps'); g.className='pill bad'; g.textContent=m[e.code]||'erreur GPS';
+}
+
+/* ---------------- boucle d'affichage ---------------- */
+function loop(){
+  const now=performance.now(), dt=(now-lastT)/1000; lastT=now;
+  if(dt>0&&dt<2) dist += v*dt*coef;              // intégration de la vitesse
+  const t=(now-t0)/1000;
+
+  const vs = vAt(P,dist);                        // moyenne du secteur courant
+  const ti = tIdeal(P,dist);                     // temps idéal pour cette distance
+  const eS = ti - t;                             // >0 : avance
+  const eM = eS*vs;
+
+  // vitesse à tenir pour revenir à zéro sur les 300 prochains mètres
+  const L=300, need = tIdeal(P,dist+L) - t;
+  let vc = need>0.5 ? L/need : vs*1.5;
+  const cap = vs*1.10;                           // plafond réglementaire +10 %
+  const over = vc>cap;
+  vc = clamp(vc, 0, cap);
+
+  const box=$('heroBox'), col = Math.abs(eM)<2 ? 'var(--ok)' : eM>0 ? 'var(--av)' : 'var(--re)';
+  $('ecLbl').textContent = Math.abs(eM)<2 ? 'À l\'heure' : eM>0 ? 'Avance · lève le pied' : 'Retard · accélère';
+  $('ecLbl').style.color = col;
+  $('ecM').textContent = (eM>0?'+':'') + Math.round(eM);
+  $('ecM').style.color = col;
+  $('ecS').textContent = (eS>0?'+':'') + eS.toFixed(1).replace('.',',') + ' s';
+  box.style.borderColor = Math.abs(eM)<2 ? '#1c4433' : eM>0 ? '#4a1e1e' : '#4a3b14';
+
+  $('vCible').textContent = vs>0 ? (vc*3.6).toFixed(0) : '—';
+  $('vNow').textContent   = 'actuelle ' + (v*3.6).toFixed(0) + ' km/h';
+  const crawl = vs>0 && vc < vs*0.5;
+  $('cap').classList.toggle('hide', !over && !crawl);
+  if(over) $('cap').innerHTML = 'Plafonné à +10 % de la moyenne. Au-delà, le règlement prévoit 160 € puis la disqualification. Reprends la moyenne juste et encaisse le retard.';
+  else if(crawl) $('cap').innerHTML = 'Avance importante. Attention, tout ralentissement intempestif ou arrêt dans la zone, surtout aux abords de l\'arrivée, est interdit et sanctionné. Rends l\'avance progressivement.';
+
+  $('dist').textContent  = dist<10000 ? Math.round(dist)+' m' : (dist/1000).toFixed(2)+' km';
+  $('tps').textContent   = mmss(t);
+  $('tid').textContent   = mmss(ti);
+  $('moyNow').textContent= (vs*3.6).toFixed(1);
+  $('moyR').textContent  = t>5 ? (dist/t*3.6).toFixed(1) : '—';
+  $('acc').textContent   = acc==null?'—':acc+' m';
+  const g=$('gps');
+  g.className='pill ' + (acc==null?'':acc<=8?'ok':acc<=20?'warn':'bad');
+  g.textContent = acc==null?'GPS en attente':acc<=8?'GPS bon':acc<=20?'GPS moyen':'GPS dégradé';
+}
+function mmss(s){
+  s=Math.max(0,Math.round(s));
+  return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');
+}
+
+/* ---------------- recalage ---------------- */
+function openRecal(){
+  $('rkm').value='';
+  $('rInfo').textContent='Distance mesurée actuelle : '+Math.round(dist)+' m';
+  $('sheet').classList.remove('hide');
+}
+function closeSheet(){ $('sheet').classList.add('hide'); }
+function doRecal(applyCoef){
+  const km=num($('rkm').value);
+  if(km==null||km<0){ alert('Saisis le kilométrage.'); return; }
+  const real=km*1000;
+  if(applyCoef && dist>200){
+    coef = clamp(coef*real/dist, 0.8, 1.2);
+    $('coef').value = coef.toFixed(4);
+  }
+  dist = real;
+  closeSheet();
+}
+
+/* ---------------- init ---------------- */
+(function(){
+  try{
+    const s=JSON.parse(localStorage.getItem(K)||'{}');
+    if(s.moy0) $('moy0').value=s.moy0;
+    if(s.coef) $('coef').value=s.coef;
+    if(Array.isArray(s.secs)) secs=s.secs;
+  }catch(e){}
+  paintSecs();
+  if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+  // réveille le GPS dès l'ouverture pour que le premier fix soit déjà stabilisé au départ
+  if(navigator.geolocation) navigator.geolocation.getCurrentPosition(
+    p=>{ acc=Math.round(p.coords.accuracy);
+         const g=$('gps'); g.className='pill '+(acc<=8?'ok':acc<=20?'warn':'bad');
+         g.textContent='GPS prêt · '+acc+' m'; }, ()=>{},
+    {enableHighAccuracy:true,timeout:15000});
+})();
+</script>
+</body>
+</html>

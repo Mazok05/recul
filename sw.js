@@ -1,5 +1,5 @@
-const CACHE = 'regul-gps-v1';
-const FILES = ['./', './regul-gps.html'];
+const CACHE = 'regul-gps-v2';
+const FILES = ['./regul-gps.html'];
 
 self.addEventListener('install', e => {
   self.skipWaiting();
